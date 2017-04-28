@@ -47,6 +47,7 @@ Makefile.in
 /src/frontend/fake-webcam
 /src/frontend/real-webcam
 /src/frontend/xc-zero-out-residues
+/src/frontend/xc-switch
 
 /src/tests/decode-to-stdout
 /src/tests/encode-loopback
