@@ -657,3 +657,6 @@ void Macroblock<FrameHeaderType, MacroblockHeaderType>::zero_out()
 
 template void InterFrameMacroblock::zero_out();
 template void KeyFrameMacroblock::zero_out();
+
+template vector<uint8_t> Encoder::write_frame( const InterFrame & );
+template vector<uint8_t> Encoder::write_frame( const KeyFrame & );

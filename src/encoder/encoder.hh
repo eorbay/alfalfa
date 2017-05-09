@@ -271,7 +271,7 @@ private:
                                    MVComponentCounts & counts ) const;
 
   static unsigned calc_prob( unsigned false_count, unsigned total );
-
+public:
   template<class FrameType>
   std::vector<uint8_t> write_frame( const FrameType & frame );
 
@@ -282,7 +282,7 @@ private:
   /* Encoded frame size estimation */
   template<class FrameType>
   size_t estimate_size( const VP8Raster & raster, const size_t y_ac_qi );
-
+public:
   /* Convergence-related stuff */
   template<class FrameType>
   InterFrame reencode_as_interframe( const VP8Raster & unfiltered_output,

@@ -22,7 +22,16 @@ using namespace std;
 
 void usage_error( const string & program_name )
 {
-  cerr << program_name << " FROM TO" << endl;
+  cerr << program_name << " FROM TO OUTPUT" << endl;
+}
+
+uint8_t get_qi( uint8_t low, uint8_t high, size_t index, size_t total )
+{
+  double alpha = 1.0 * index / ( total - 1 );
+
+  if ( alpha > 0.99 ) alpha = 1.0;
+
+  return high * alpha + low * ( 1 - alpha );
 }
 
 int main( int argc, char *argv[] )
@@ -32,10 +41,12 @@ int main( int argc, char *argv[] )
       abort();
     }
 
-    if ( argc < 3 ) {
+    if ( argc < 4 ) {
       usage_error( argv[ 0 ] );
       return EXIT_FAILURE;
     }
+
+    string output_name = argv[ 3 ];
 
     IVF ivf[] = { { argv[ 1 ] }, { argv[ 2 ] } };
 
@@ -74,7 +85,37 @@ int main( int argc, char *argv[] )
        }
     }
 
+    //vector<pair<Optional<KeyFrame>, Optional<InterFrame> > > result;
 
+    size_t switch_start = 1;
+    size_t switch_length = 12;
+    size_t switch_index = 0;
+
+    IVFWriter out_writer { output_name, "VP80", width, height, 1, 1 };
+
+    Encoder encoder { width, height, false, BEST_QUALITY };
+
+    for ( size_t frame_no = 0; frame_no < switch_start + switch_length; frame_no++ ) {
+      if ( frame_no < switch_start ) {
+        out_writer.append_frame( encoder.write_frame( frames[ 0 ][ frame_no ].first.get() ) );
+        continue;
+      }
+
+      uint16_t q[] = {
+        frames[ 0 ][ frame_no ].second.get().header().quant_indices.y_ac_qi,
+        frames[ 1 ][ frame_no ].second.get().header().quant_indices.y_ac_qi
+      };
+
+      QuantIndices new_qi;
+      new_qi.y_ac_qi = get_qi( q[ 0 ], q[ 1 ], switch_index, switch_length );
+
+      out_writer.append_frame( encoder.write_frame( encoder.update_residues( outputs[ 1 ][ frame_no ],
+                                                    frames[ 1 ][ frame_no ].second.get(),
+                                                    new_qi, false ) ) );
+
+
+      switch_index++;
+    }
   }
   catch ( const exception &  e ) {
     print_exception( argv[ 0 ], e );
